@@ -99,6 +99,20 @@ KEYWORD_RULES = [
         ],
         "intent": "navigate_profile"
     },
+    # Navigation: Login
+    {
+        "patterns": [
+            r"(login|sign\s*in|log\s*in|లॉगिन|लॉग\s*इन|साइन\s*इन|లాగిన్|సైన్\s*ఇన్)",
+        ],
+        "intent": "navigate_login"
+    },
+    # Navigation: Register
+    {
+        "patterns": [
+            r"(register|sign\s*up|create\s*account|रजिस्टर|साइन\s*अप|खाता\s*बना|पंजीकरण|రిజిస్టర్|సైన్\s*అప్|ఖాతా\s*సృష్ట|నమోదు)",
+        ],
+        "intent": "navigate_register"
+    },
 ]
 
 SPECIALTY_KEYWORDS = {
@@ -117,6 +131,15 @@ SPECIALTY_KEYWORDS = {
 def keyword_route(text: str) -> dict:
     """Fast, deterministic keyword-based intent routing."""
     text_lower = text.lower().strip()
+    
+    # If the text contains strong negations, skip fast routing and let the LLM handle the nuance
+    negations = [
+        r"\bdon't\b", r"\bdo not\b", r"\bnot\b", r"\bnever\b", r"\bno\b",
+        r"नहीं", r"ना\b", r"मत",
+        r"వద్దు", r"లేదు", r"కాదు", r"అక్కర్లేదు", r"వద్దని", r"ఇష్టం\s*లేదు"
+    ]
+    if any(re.search(neg, text_lower) for neg in negations):
+        return {"intent": None, "specialty": "None"}
     
     # Detect intent
     detected_intent = None
@@ -279,7 +302,7 @@ def _get_llm_client():
 
 
 class LLMResponse(BaseModel):
-    intent: Literal["book_appointment", "find_hospital", "medicine_reminder", "view_records", "emergency", "navigate_home", "navigate_profile", "clarify"]
+    intent: Literal["book_appointment", "find_hospital", "medicine_reminder", "view_records", "emergency", "navigate_home", "navigate_profile", "navigate_login", "navigate_register", "clarify"]
     specialty: str = "None"
     tts_feedback: str = ""
 
@@ -332,6 +355,16 @@ TTS_TEMPLATES = {
         "English": "Opening your profile.",
         "Hindi": "आपकी प्रोफ़ाइल खोल रहा हूँ।",
         "Telugu": "మీ ప్రొఫైల్ తెరుస్తున్నాను."
+    },
+    "navigate_login": {
+        "English": "Opening login page.",
+        "Hindi": "लॉगिन पेज खोल रहा हूँ।",
+        "Telugu": "లాగిన్ పేజీ తెరుస్తున్నాను."
+    },
+    "navigate_register": {
+        "English": "Opening registration page.",
+        "Hindi": "पंजीकरण पेज खोल रहा हूँ।",
+        "Telugu": "నమోదు పేజీ తెరుస్తున్నాను."
     },
     "clarify": {
         "English": "I didn't understand. Please try again.",

@@ -85,6 +85,8 @@ const useVoiceAssistant = () => {
           'emergency': '/appointments?escalated=true&urgency=HIGH&openForm=true',
           'navigate_home': '/dashboard',
           'navigate_profile': '/profile',
+          'navigate_login': '/login',
+          'navigate_register': '/register',
         };
 
         const targetRoute = intentRoutes[intent];
