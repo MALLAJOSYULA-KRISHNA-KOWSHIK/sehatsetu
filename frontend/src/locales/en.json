@@ -1,0 +1,128 @@
+{
+  "welcome": "Healthcare guidance, wherever you are.",
+  "find_care": "Find Care",
+  "health_info": "Health Information",
+  "appointments": "Appointments",
+  "emergency": "Emergency",
+  "login": "Login/Register",
+  "talk_to_us": "Talk to SehatSetu",
+  "logout": "Logout",
+  "nav": {
+    "home": "Home",
+    "find_care": "Find Care",
+    "appointments": "Appointments",
+    "health_records": "Health Records",
+    "reminders": "Reminders",
+    "profile": "Profile",
+    "patients": "Patients",
+    "doctors": "Doctors"
+  },
+  "landing": {
+    "subtitle": "Find nearby healthcare facilities, understand health information, manage appointments and stay connected with healthcare professionals.",
+    "find_healthcare": "Find Healthcare",
+    "disclaimer": "SehatSetu provides general health information and healthcare assistance. It does not provide medical diagnosis or replace a qualified healthcare professional."
+  },
+  "dashboard": {
+    "hello": "Hello",
+    "find_hospital": "Find Hospital",
+    "book_appt": "Book Appointment",
+    "health_records": "Health Records",
+    "reminders": "Reminders",
+    "health_info": "Health Info",
+    "emergency": "Emergency",
+    "upcoming_appts": "Upcoming Appointments",
+    "view_all": "View all",
+    "no_upcoming_appts": "No upcoming appointments",
+    "book_first_appt": "Book your first appointment",
+    "appt_with": "Appointment with",
+    "at": "at",
+    "medicine_reminders": "Medicine Reminders",
+    "no_active_reminders": "No active reminders",
+    "add_reminder": "Add a reminder"
+  },
+  "find_care": {
+    "title": "Find Healthcare Facilities",
+    "search_placeholder": "Search hospitals, clinics...",
+    "nearby_facilities": "Nearby Facilities",
+    "no_results": "No facilities found matching your criteria.",
+    "list_view": "List View",
+    "map_view": "Map View",
+    "book_appt": "Book Appointment"
+  },
+  "appointments": {
+    "title": "Appointments",
+    "book_new": "Book New Appointment",
+    "upcoming": "Upcoming",
+    "past": "Past",
+    "no_appointments": "No appointments found.",
+    "select_doctor": "Select Doctor",
+    "select_date": "Select Date",
+    "select_time": "Select Time",
+    "reason": "Reason for Visit",
+    "book_btn": "Confirm Booking",
+    "cancel": "Cancel",
+    "status": {
+      "PENDING": "Pending",
+      "CONFIRMED": "Confirmed",
+      "CANCELLED": "Cancelled",
+      "COMPLETED": "Completed"
+    }
+  },
+  "health_records": {
+    "title": "Health Records",
+    "upload_btn": "Upload Record",
+    "no_records": "No health records found.",
+    "type_prescription": "Prescription",
+    "type_lab_report": "Lab Report",
+    "type_scan": "Scan",
+    "download": "Download"
+  },
+  "reminders": {
+    "title": "Medicine Reminders",
+    "add_new": "Add Reminder",
+    "medicine_name": "Medicine Name",
+    "dosage": "Dosage (e.g. 1 pill)",
+    "frequency": "Frequency",
+    "time": "Time",
+    "save": "Save Reminder",
+    "no_reminders": "No reminders set."
+  },
+  "profile": {
+    "title": "Profile",
+    "full_name": "Full Name",
+    "phone": "Phone Number",
+    "email": "Email Address",
+    "gender": "Gender",
+    "dob": "Date of Birth",
+    "village": "Village/Town",
+    "district": "District",
+    "state": "State",
+    "save": "Save Changes",
+    "edit": "Edit Profile"
+  },
+  "emergency": {
+    "title": "Emergency Assistance",
+    "call_ambulance": "Call Ambulance",
+    "sos": "SOS Emergency",
+    "contacts": "Emergency Contacts",
+    "police": "Police",
+    "fire": "Fire"
+  },
+  "auth": {
+    "login_title": "Welcome Back",
+    "register_title": "Create an Account",
+    "phone": "Phone Number",
+    "password": "Password",
+    "login_btn": "Login",
+    "register_btn": "Register",
+    "no_account": "Don't have an account?",
+    "have_account": "Already have an account?",
+    "sign_up": "Sign up",
+    "sign_in": "Sign in"
+  },
+  "common": {
+    "emergency": "Emergency",
+    "loading": "Loading...",
+    "error": "An error occurred."
+  }
+}
