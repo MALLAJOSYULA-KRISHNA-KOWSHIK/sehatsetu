@@ -81,7 +81,7 @@ KEYWORD_RULES = [
     {
         "patterns": [
             r"(emergency|ambulance|911|112|urgent|sos|help\s*me|bachao|madad|ఎమర్జెన్సీ|ఆంబులెన్స్|సహాయం|అత్యవసర|आपातकाल|एम्बुलेंस|मदद|बचाओ)",
-            r"(accident|heart\s*attack|bleeding|stroke|suicide|breath|chest\s*pain|unconscious|high\s*intensity|high|severe)"
+            r"(accident|heart\s*attack|bleeding|stroke|suicide|breath|chest\s*pain|unconscious|high\s*intensity|high|severe|ప్రమాదం|గుండెపోటు|రక్తస్రావం|పక్షవాతం|ఆత్మహత్య|ఊపిరి|శ్వాస|ఛాతీ\s*నొప్పి|అపస్మారక|తీవ్రమైన|दुर्घटना|एक्सीडेंट|दिल\s*का\s*दौरा|हार्ट\s*अटैक|खून\s*बह\s*रहा|रक्तस्राव|लकवा|आत्महत्या|सांस|साँस|सीने\s*में\s*दर्द|छाती\s*में\s*दर्द|बेहोश|गंभीर|तेज)"
         ],
         "intent": "emergency"
     },

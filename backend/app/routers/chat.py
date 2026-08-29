@@ -40,7 +40,11 @@ async def chat_interaction(chat: ChatMessage):
     msg = chat.message.lower()
     
     # 1. Immediate Safety Override for Emergencies
-    emergency_keywords = ["emergency", "accident", "heart attack", "bleeding", "stroke", "suicide", "breath", "chest pain","unconscious","high","high intensity","severe"]
+    emergency_keywords = [
+        "emergency", "accident", "heart attack", "bleeding", "stroke", "suicide", "breath", "chest pain","unconscious","high","high intensity","severe",
+        "ఎమర్జెన్సీ", "అత్యవసర", "ప్రమాదం", "గుండెపోటు", "రక్తస్రావం", "పక్షవాతం", "ఆత్మహత్య", "ఊపిరి", "శ్వాస", "ఛాతీ నొప్పి", "అపస్మారక", "తీవ్రమైన",
+        "आपातकाल", "दुर्घटना", "एक्सीडेंट", "दिल का दौरा", "हार्ट अटैक", "खून बह रहा", "रक्तस्राव", "लकवा", "आत्महत्या", "सांस", "साँस", "सीने में दर्द", "छाती में दर्द", "बेहोश", "गंभीर", "तेज"
+    ]
     if any(keyword in msg for keyword in emergency_keywords):
         return ChatResponse(
             response="This sounds like a medical emergency. Please contact emergency services immediately or visit the nearest hospital.",
