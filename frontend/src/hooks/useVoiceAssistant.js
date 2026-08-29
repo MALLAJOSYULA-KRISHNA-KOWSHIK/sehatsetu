@@ -82,7 +82,7 @@ const useVoiceAssistant = () => {
           'find_hospital': '/find-care',
           'medicine_reminder': '/reminders',
           'view_records': '/health-records',
-          'emergency': '/emergency',
+          'emergency': '/appointments?escalated=true&urgency=HIGH&openForm=true',
           'navigate_home': '/dashboard',
           'navigate_profile': '/profile',
         };
@@ -97,7 +97,7 @@ const useVoiceAssistant = () => {
                 fromVoice: true,
                 specialty: specialty !== 'None' ? specialty : null,
                 voiceIntent: intent,
-                openForm: intent === 'book_appointment',
+                openForm: intent === 'book_appointment' || intent === 'emergency',
                 preferredTime: extracted_time || null,
                 preferredDate: extracted_date || null,
                 doctorName: extracted_doctor_name || null,

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useSearchParams } from 'react-router-dom';
 import api from '../api/axios';
 import { useTranslation } from 'react-i18next';
 import {
@@ -8,6 +8,11 @@ import {
 
 const Appointments = () => {
   const location = useLocation();
+  const [searchParams] = useSearchParams();
+  const isEscalated = searchParams.get('escalated') === 'true';
+  const urgency = searchParams.get('urgency');
+  const openFormQuery = searchParams.get('openForm') === 'true';
+  
   const voiceState = location.state || {};
   const voiceRef = useRef(voiceState);  // Persist voice state across re-renders
   const voiceProcessed = useRef(false); // Only auto-fill once
@@ -55,7 +60,7 @@ const Appointments = () => {
 
           // --- Voice auto-fill: run the entire chain sequentially ---
           const vs = voiceRef.current;
-          if (vs.openForm && !voiceProcessed.current && loadedFacilities.length > 0) {
+          if ((vs.openForm || openFormQuery) && !voiceProcessed.current && loadedFacilities.length > 0) {
             voiceProcessed.current = true;
             setShowForm(true);
             await autoFillFromVoice(loadedFacilities, vs);
@@ -208,6 +213,9 @@ const Appointments = () => {
     }
   }, [formData.specialization]);
 
+  const isEscalatedFinal = isEscalated || location.state?.is_escalated || false;
+  const urgencyFinal = urgency || location.state?.urgency || null;
+
   const handleCreate = async (e) => {
     e.preventDefault();
     setSubmitting(true);
@@ -218,7 +226,9 @@ const Appointments = () => {
         facility_id: formData.facility_id,
         doctor_id: formData.doctor_id,
         preferred_date: formData.preferred_date,
-        preferred_time: formData.preferred_time
+        preferred_time: formData.preferred_time,
+        is_escalated: isEscalatedFinal,
+        urgency_level: urgencyFinal
       };
       await api.post('/appointments/', payload);
       setSuccess('Appointment request sent! Wait for hospital confirmation.');
@@ -286,6 +296,12 @@ const Appointments = () => {
       {showForm && (
         <form onSubmit={handleCreate} className="bg-white p-6 rounded-2xl border border-gray-100 mb-6 space-y-5 shadow-sm">
           <h3 className="font-bold text-gray-900 text-lg mb-2">{t('appointments.book_new')}</h3>
+          {isEscalatedFinal && (
+            <div className="mb-2 p-3 bg-red-100 border border-red-200 rounded-lg flex items-center gap-2 text-red-800 text-sm font-bold shadow-sm">
+              <AlertCircle className="h-5 w-5" />
+              This appointment is flagged as an AI Escalation ({urgencyFinal}) and will be prioritized by the hospital.
+            </div>
+          )}
           
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-1"><Building2 className="h-4 w-4" /> Facility *</label>

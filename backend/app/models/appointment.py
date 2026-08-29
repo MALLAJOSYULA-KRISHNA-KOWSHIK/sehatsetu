@@ -1,4 +1,4 @@
-from sqlalchemy import Column, String, DateTime, ForeignKey, Enum as SQLEnum, Date, Time
+from sqlalchemy import Column, String, DateTime, ForeignKey, Enum as SQLEnum, Date, Time, Boolean
 from sqlalchemy.orm import relationship
 import enum
 import uuid
@@ -24,6 +24,9 @@ class Appointment(Base):
     preferred_time = Column(Time, nullable=False)
     reason = Column(String, nullable=True)
     decline_reason = Column(String, nullable=True)
+    
+    is_escalated = Column(Boolean, default=False)
+    urgency_level = Column(String, nullable=True)
     
     status = Column(SQLEnum(AppointmentStatus), default=AppointmentStatus.PENDING)
     created_at = Column(DateTime, default=datetime.utcnow)

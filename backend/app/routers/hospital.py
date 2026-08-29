@@ -61,14 +61,23 @@ async def get_dashboard_stats(
     today_count = len(today_res.scalars().all())
     
     # Get total doctors
-    doc_stmt = select(Doctor).where(Doctor.facility_id == facility_id)
-    doc_res = await db.execute(doc_stmt)
-    doc_count = len(doc_res.scalars().all())
+    doctors_stmt = select(Doctor).where(Doctor.facility_id == facility_id)
+    doctors_res = await db.execute(doctors_stmt)
+    doctors_count = len(doctors_res.scalars().all())
+    
+    # Get escalated appointments count
+    escalated_stmt = select(Appointment).where(
+        Appointment.facility_id == facility_id, 
+        Appointment.is_escalated == True
+    )
+    escalated_res = await db.execute(escalated_stmt)
+    escalated_count = len(escalated_res.scalars().all())
     
     return {
         "pending_appointments": pending_count,
         "today_appointments": today_count,
-        "total_doctors": doc_count
+        "total_doctors": doctors_count,
+        "escalated_appointments": escalated_count
     }
 
 @router.get("/appointments")
@@ -90,14 +99,18 @@ async def get_hospital_appointments(
     # Format for frontend
     return [{
         "id": appt.id,
+        "patient_id": appt.user.id if appt.user else None,
         "patient_name": appt.user.profile.full_name if appt.user and appt.user.profile else "Unknown",
         "patient_phone": appt.user.phone_number if appt.user else "Unknown",
+        "doctor_id": appt.doctor.id if appt.doctor else None,
         "doctor_name": appt.doctor.name if appt.doctor else "Unknown",
         "specialization": appt.doctor.specialization if appt.doctor else "Unknown",
         "preferred_date": appt.preferred_date,
         "preferred_time": appt.preferred_time,
         "status": appt.status,
         "decline_reason": appt.decline_reason,
+        "is_escalated": appt.is_escalated,
+        "urgency_level": appt.urgency_level,
         "created_at": appt.created_at
     } for appt in appointments]
 

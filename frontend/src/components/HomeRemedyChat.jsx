@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Send, X, Bot, User, Loader2 } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import api from '../api/axios';
 import { useTranslation } from 'react-i18next';
 
@@ -9,7 +10,9 @@ const HomeRemedyChat = ({ onClose }) => {
     {
       id: 1,
       sender: 'bot',
-      text: t('Hello! I can suggest basic home remedies. (Note: I am not a doctor and cannot prescribe medicines)')
+      text: t('Hello! I can suggest basic home remedies. (Note: I am not a doctor and cannot prescribe medicines)'),
+      urgency: 'LOW',
+      action: 'NONE'
     }
   ]);
   const [input, setInput] = useState('');
@@ -49,14 +52,18 @@ const HomeRemedyChat = ({ onClose }) => {
       setMessages(prev => [...prev, { 
         id: Date.now(), 
         sender: 'bot', 
-        text: res.data.response 
+        text: res.data.response,
+        urgency: res.data.urgency,
+        action: res.data.action
       }]);
     } catch (err) {
       console.error("Chat error:", err);
       setMessages(prev => [...prev, { 
         id: Date.now(), 
         sender: 'bot', 
-        text: t('Sorry, I am having trouble connecting right now.') 
+        text: t('Sorry, I am having trouble connecting right now.'),
+        urgency: 'LOW',
+        action: 'NONE'
       }]);
     } finally {
       setIsTyping(false);
@@ -80,12 +87,47 @@ const HomeRemedyChat = ({ onClose }) => {
       <div className="flex-1 overflow-y-auto p-4 bg-gray-50 space-y-4">
         {messages.map((msg) => (
           <div key={msg.id} className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
-            <div className={`max-w-[80%] rounded-2xl p-3 ${
+            <div className={`max-w-[85%] rounded-2xl p-3 ${
               msg.sender === 'user' 
-                ? 'bg-green-600 text-white rounded-tr-sm' 
-                : 'bg-white border border-gray-200 text-gray-800 rounded-tl-sm shadow-sm'
+                ? 'bg-emerald-600 text-white rounded-tr-sm' 
+                : msg.urgency === 'HIGH'
+                  ? 'bg-red-50 border border-red-200 text-red-900 rounded-tl-sm shadow-sm'
+                  : msg.urgency === 'MEDIUM'
+                    ? 'bg-amber-50 border border-amber-200 text-amber-900 rounded-tl-sm shadow-sm'
+                    : 'bg-white border border-slate-200 text-slate-800 rounded-tl-sm shadow-sm'
             }`}>
-              <p className="text-sm">{msg.text}</p>
+              <p className="text-[13px] leading-relaxed">{msg.text}</p>
+              
+              {msg.action === 'EMERGENCY_ASSISTANCE' && (
+                <div className="mt-3 flex flex-col gap-2">
+                  <a href="tel:112" className="text-center block bg-red-600 text-white text-xs font-bold py-2 px-3 rounded-lg hover:bg-red-700 transition">
+                    Call Emergency (112)
+                  </a>
+                  <Link 
+                    to={`/appointments?escalated=true&urgency=${msg.urgency}&openForm=true`}
+                    className="text-center block bg-red-100 text-red-700 border border-red-200 text-xs font-bold py-2 px-3 rounded-lg hover:bg-red-200 transition"
+                  >
+                    Book Emergency Appointment
+                  </Link>
+                </div>
+              )}
+              
+              {(msg.action === 'BOOK_APPOINTMENT' || msg.action === 'FIND_FACILITY') && (
+                <div className="mt-3 flex flex-col gap-2">
+                  <Link 
+                    to="/find-care"
+                    className="text-center block bg-amber-100 text-amber-800 border border-amber-200 text-xs font-bold py-2 px-3 rounded-lg hover:bg-amber-200 transition"
+                  >
+                    Find Care Map
+                  </Link>
+                  <Link 
+                    to={`/appointments?escalated=true&urgency=${msg.urgency}&openForm=true`}
+                    className="text-center block bg-amber-600 text-white text-xs font-bold py-2 px-3 rounded-lg hover:bg-amber-700 transition"
+                  >
+                    Book Urgent Appointment
+                  </Link>
+                </div>
+              )}
             </div>
           </div>
         ))}

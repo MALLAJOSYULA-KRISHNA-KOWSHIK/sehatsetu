@@ -81,6 +81,7 @@ KEYWORD_RULES = [
     {
         "patterns": [
             r"(emergency|ambulance|911|112|urgent|sos|help\s*me|bachao|madad|ఎమర్జెన్సీ|ఆంబులెన్స్|సహాయం|అత్యవసర|आपातकाल|एम्बुलेंस|मदद|बचाओ)",
+            r"(accident|heart\s*attack|bleeding|stroke|suicide|breath|chest\s*pain|unconscious|high\s*intensity|high|severe)"
         ],
         "intent": "emergency"
     },

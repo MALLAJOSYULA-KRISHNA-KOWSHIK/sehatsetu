@@ -28,6 +28,7 @@ const HospitalDashboard = () => {
 
   const statCards = [
     { label: 'Pending Appointments', value: stats.pending_appointments, icon: Calendar, color: 'bg-orange-100 text-orange-600', link: '/hospital/appointments' },
+    { label: 'Escalated Appointments', value: stats.escalated_appointments || 0, icon: AlertCircle, color: 'bg-red-100 text-red-600 border border-red-200', link: '/hospital/appointments' },
     { label: "Today's Appointments", value: stats.today_appointments, icon: Users, color: 'bg-blue-100 text-blue-600', link: '/hospital/appointments' },
     { label: 'Total Doctors', value: stats.total_doctors, icon: Building2, color: 'bg-purple-100 text-purple-600', link: '/hospital/doctors' },
   ];

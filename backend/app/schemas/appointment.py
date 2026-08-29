@@ -11,6 +11,8 @@ class AppointmentBase(BaseModel):
     preferred_date: date
     preferred_time: time
     reason: Optional[str] = None
+    is_escalated: Optional[bool] = False
+    urgency_level: Optional[str] = None
 
 class AppointmentCreate(AppointmentBase):
     pass

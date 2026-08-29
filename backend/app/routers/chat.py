@@ -2,7 +2,7 @@ import os
 import instructor
 from openai import OpenAI
 from pydantic import BaseModel, Field
-from typing import List, Optional
+from typing import List, Optional, Literal
 from fastapi import APIRouter
 import asyncio
 
@@ -17,6 +17,8 @@ class ChatResponse(BaseModel):
     category: str
     requires_escalation: bool
     suggested_actions: List[str]
+    urgency: str = "LOW"
+    action: str = "NONE"
 
 def _get_llm_client():
     return instructor.from_openai(OpenAI(
@@ -26,20 +28,27 @@ def _get_llm_client():
     ))
 
 class AssistantResponse(BaseModel):
-    reply: str = Field(description="The short conversational response or basic home remedy (1-2 sentences max)")
-
+    intent: Literal["RESPOND", "ESCALATE"] = Field(description="Use ESCALATE if professional care is needed. Use RESPOND for general info.")
+    urgency: Literal["LOW", "MEDIUM", "HIGH"] = Field(description="LOW for general info, MEDIUM for persistent symptoms, HIGH for emergencies.")
+    reason: str = Field(description="Short explanation of why professional care is recommended.")
+    recommended_facility: Literal["NONE", "AAM", "PHC", "CHC", "HOSPITAL", "EMERGENCY"] = Field(description="The recommended facility type")
+    action: Literal["NONE", "BOOK_APPOINTMENT", "FIND_FACILITY", "EMERGENCY_ASSISTANCE"] = Field(description="The action the user should take")
+    requires_immediate_attention: bool = Field(description="True if the situation is life-threatening")
+    conversational_reply: str = Field(description="The natural language conversational reply to the user. This MUST be in the requested language.")
 @router.post("/message", response_model=ChatResponse)
 async def chat_interaction(chat: ChatMessage):
     msg = chat.message.lower()
     
     # 1. Immediate Safety Override for Emergencies
-    emergency_keywords = ["emergency", "accident", "heart attack", "bleeding", "stroke", "suicide", "breath", "chest pain"]
+    emergency_keywords = ["emergency", "accident", "heart attack", "bleeding", "stroke", "suicide", "breath", "chest pain","unconscious","high","high intensity","severe"]
     if any(keyword in msg for keyword in emergency_keywords):
         return ChatResponse(
             response="This sounds like a medical emergency. Please contact emergency services immediately or visit the nearest hospital.",
             category="EMERGENCY",
             requires_escalation=True,
-            suggested_actions=["Call 112", "Find Nearest Emergency Facility"]
+            suggested_actions=["Call 112", "Find Nearest Emergency Facility"],
+            urgency="HIGH",
+            action="EMERGENCY_ASSISTANCE"
         )
         
     # 2. LLM-based Home Remedy Guidance
@@ -47,20 +56,35 @@ async def chat_interaction(chat: ChatMessage):
     
     target_lang = "Telugu" if chat.language == "te" else "English"
     
-    base_prompt = f"""You are a healthcare conversational assistant for a rural healthcare platform.
+    base_prompt = f"""You are the SehatSetu healthcare navigation assistant. Your role is to provide safe health guidance, understand the user's needs, and connect the user to an appropriate healthcare professional when necessary.
     
 CRITICAL LANGUAGE INSTRUCTION:
-You MUST respond entirely in {target_lang}.
-If the user asks in {target_lang}, answer ONLY in {target_lang}. Do not mix languages unless using universally understood terms.
+You MUST respond entirely in {target_lang}. The 'conversational_reply' field MUST be in {target_lang}.
 
-HEALTHCARE SAFETY & SIMPLICITY
-* Do not diagnose with certainty.
-* Do not invent medical information, hospital names, doctor names, phone numbers, ambulance numbers, or availability.
-* If the situation appears life-threatening, clearly advise the user to seek emergency medical care.
-* Do not delay emergency guidance with unnecessary questions.
-* ONLY suggest safe, natural home remedies (like resting, drinking water, or cooling down). 
-* ABSOLUTELY DO NOT prescribe medications or suggest specific drug names (e.g., do not mention paracetamol, ibuprofen, etc.).
-* DO NOT use complex medical terminology. Use extremely simple, everyday language as if speaking to a rural user with no medical background.
+### 1. Do NOT diagnose
+Never claim to definitively diagnose a disease or medical condition.
+Do not say: "You definitely have..." or "You don't need a doctor."
+Instead, explain that symptoms can have multiple causes and recommend appropriate professional care when needed.
+
+### 2. Identify when escalation is necessary
+Escalate the user to a healthcare professional (intent="ESCALATE") when:
+* Symptoms are persistent, worsening, severe, unusual, or unclear.
+* The user reports multiple concerning symptoms.
+* The user asks for diagnosis of a potentially serious condition.
+* The user explicitly asks to speak with a doctor, nurse, or healthcare worker.
+
+### 3. Emergency escalation
+Immediately treat the situation as potentially urgent (HIGH) when the user reports symptoms such as:
+* Severe chest pain, breathing difficulty, loss of consciousness, severe bleeding, sudden weakness, confusion, seizure, trauma, suspected stroke/heart attack, severe allergic reaction, poisoning, suicidal thoughts.
+For emergencies: Tell the user to seek emergency medical help immediately. Do not delay with unnecessary conversation.
+
+### 4. Escalation levels
+LOW: General health info, mild non-concerning symptoms. Provide info and advise monitoring.
+MEDIUM: Persistent/worsening symptoms requiring clinical assessment. Action: BOOK_APPOINTMENT or FIND_FACILITY.
+HIGH: Potentially life-threatening. Action: EMERGENCY_ASSISTANCE.
+
+### 5. Patient-friendly communication
+When escalating, use simple language. Never block access to healthcare. ONLY suggest safe, natural home remedies. ABSOLUTELY DO NOT prescribe medications or suggest specific drug names.
 """
 
     telugu_rules = """
@@ -90,30 +114,34 @@ CORE RULE:
 
 
     try:
-        # Run synchronous OpenAI call without strict Instructor JSON formatting to prevent code hallucinations in non-English
-        raw_client = OpenAI(
-            base_url=os.getenv("OLLAMA_BASE_URL", "http://localhost:11434/v1"),
-            api_key="ollama",
-            timeout=30.0
-        )
-        result = await asyncio.to_thread(
-            raw_client.chat.completions.create,
+        # Re-enable instructor to enforce JSON output for the Escalation Protocol
+        response_data = await asyncio.to_thread(
+            client.chat.completions.create,
             model="qwen2.5:3b",
+            response_model=AssistantResponse,
             messages=[
-                {"role": "system", "content": system_prompt},
+                {"role": "system", "content": system_prompt.strip()},
                 {"role": "user", "content": chat.message}
             ],
             temperature=0.3
         )
-        remedy_text = result.choices[0].message.content.strip()
+        
+        return ChatResponse(
+            response=response_data.conversational_reply,
+            category=response_data.intent,
+            requires_escalation=(response_data.intent == "ESCALATE"),
+            suggested_actions=[response_data.action] if response_data.action != "NONE" else [],
+            urgency=response_data.urgency,
+            action=response_data.action
+        )
     except Exception as e:
         import logging
         logging.error(f"LLM Chat Error: {e}")
-        remedy_text = "I'm sorry, I cannot process your request right now. Please drink some water and rest."
-    
-    return ChatResponse(
-        response=remedy_text,
-        category="HOME_REMEDY",
-        requires_escalation=False,
-        suggested_actions=["Find Hospital", "Book Appointment"]
-    )
+        return ChatResponse(
+            response="I'm sorry, I cannot process your request right now. Please drink some water and rest.",
+            category="HOME_REMEDY",
+            requires_escalation=False,
+            suggested_actions=["Find Hospital", "Book Appointment"],
+            urgency="LOW",
+            action="NONE"
+        )

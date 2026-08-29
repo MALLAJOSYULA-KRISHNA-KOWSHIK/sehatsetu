@@ -23,7 +23,7 @@ async def create_appointment(
         Appointment.user_id == current_user.id,
         Appointment.preferred_date == appointment.preferred_date,
         Appointment.preferred_time == appointment.preferred_time,
-        Appointment.status.notin_([AppointmentStatus.CANCELLED, AppointmentStatus.REJECTED])
+        Appointment.status.notin_([AppointmentStatus.CANCELLED, AppointmentStatus.REJECTED, AppointmentStatus.COMPLETED])
     )
     conflict_result = await db.execute(conflict_stmt)
     if conflict_result.scalars().first():
@@ -34,7 +34,7 @@ async def create_appointment(
         Appointment.doctor_id == appointment.doctor_id,
         Appointment.preferred_date == appointment.preferred_date,
         Appointment.preferred_time == appointment.preferred_time,
-        Appointment.status.notin_([AppointmentStatus.CANCELLED, AppointmentStatus.REJECTED])
+        Appointment.status.notin_([AppointmentStatus.CANCELLED, AppointmentStatus.REJECTED, AppointmentStatus.COMPLETED])
     )
     doc_conflict_result = await db.execute(doc_conflict_stmt)
     if doc_conflict_result.scalars().first():
@@ -148,6 +148,31 @@ async def accept_appointment(
     result = await db.execute(stmt)
     return result.scalars().first()
 
+@router.put("/{id}/complete", response_model=AppointmentResponse)
+async def complete_appointment(
+    id: str, 
+    current_user: User = Depends(require_role([Role.HEALTH_WORKER, Role.ADMIN])), 
+    db: AsyncSession = Depends(get_db)
+):
+    if not current_user.managed_facility_id:
+        raise HTTPException(status_code=403, detail="User is not associated with any facility")
+        
+    stmt = select(Appointment).where(Appointment.id == id, Appointment.facility_id == current_user.managed_facility_id)
+    result = await db.execute(stmt)
+    appointment = result.scalars().first()
+    
+    if not appointment:
+        raise HTTPException(status_code=404, detail="Appointment not found or not associated with your facility")
+        
+    appointment.status = AppointmentStatus.COMPLETED
+    await db.commit()
+    
+    stmt = select(Appointment).options(
+        selectinload(Appointment.doctor),
+        selectinload(Appointment.facility).selectinload(HealthcareFacility.services)
+    ).where(Appointment.id == appointment.id)
+    result = await db.execute(stmt)
+    return result.scalars().first()
 @router.put("/{id}/decline", response_model=AppointmentResponse)
 async def decline_appointment(
     id: str, 
